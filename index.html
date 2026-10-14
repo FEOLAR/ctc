@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CTC Консалтинг</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: тёмно-синий фон с мягким светом, «бенто»-сетка из стеклянных плиток, крупный плотный гротеск, золото только как акцент */
+:root {
+  --bg: #0a1222;
+  --bg-deep: #060b16;
+  --ink: #f3f5f9;
+  --ink-soft: #aab3c5;
+  --ink-mute: #6f7a91;
+  --gold: #d4af37;
+  --gold-hi: #f0d67c;
+  --gold-lo: #a8862a;
+  --line: rgba(255, 255, 255, 0.08);
+  --font-display: "Onest", "Segoe UI", Arial, sans-serif;
+  --font-body: "Onest", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --r-xl: 32px;
+  --r-l: 24px;
+  --ease: cubic-bezier(.2, .9, .25, 1);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+img { display: block; }
+::selection { background: var(--gold); color: var(--bg-deep); }
+
+/* ---------- фон ---------- */
+.sky { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.sky span { position: absolute; border-radius: 50%; filter: blur(90px); animation: drift 30s ease-in-out infinite alternate; }
+.sky .b1 { width: 50vmax; height: 50vmax; left: -16vmax; top: -18vmax; background: radial-gradient(circle, rgba(40,78,160,.55), transparent 70%); }
+.sky .b2 { width: 36vmax; height: 36vmax; right: -12vmax; top: 14vh; background: radial-gradient(circle, rgba(212,175,55,.26), transparent 70%); animation-duration: 38s; animation-delay: -9s; }
+.sky .b3 { width: 44vmax; height: 44vmax; left: 22vw; bottom: -22vmax; background: radial-gradient(circle, rgba(24,52,116,.6), transparent 70%); animation-duration: 44s; animation-delay: -18s; }
+/* тонкая сетка, тающая книзу */
+.sky::after {
+  content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, #000 0%, transparent 75%);
+}
+@keyframes drift { to { transform: translate3d(5vw, 6vh, 0) scale(1.1); } }
+
+/* ---------- жидкое стекло ---------- */
+.glass {
+  position: relative;
+  background: linear-gradient(160deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,.03) 42%, rgba(255,255,255,.015) 70%, rgba(255,255,255,.06) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-radius: var(--r-xl);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(255,255,255,.05),
+    0 24px 60px -24px rgba(0,0,0,.7);
+  isolation: isolate;
+}
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(145deg, rgba(255,255,255,.32), rgba(255,255,255,.04) 35%, rgba(255,255,255,.03) 70%, rgba(212,175,55,.3));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: radial-gradient(480px circle at var(--mx, 25%) var(--my, -30%), rgba(255,255,255,.1), transparent 48%);
+}
+
+/* ---------- кнопки ---------- */
+.btn {
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 26px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
+  font: 500 15px/1 var(--font-body); color: var(--ink);
+  transition: transform .45s var(--ease), box-shadow .45s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: scale(.97); }
+.btn:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
+.btn-gold {
+  color: #15110a;
+  background: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 55%, var(--gold-lo) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 12px 32px -10px rgba(212,175,55,.6);
+}
+.btn-gold::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 45%; left: -60%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: skewX(-20deg); transition: left .9s var(--ease);
+}
+.btn-gold:hover::after { left: 120%; }
+.btn-gold:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 16px 40px -10px rgba(212,175,55,.75); }
+.btn-glass { border-radius: 999px; }
+.btn svg { width: 16px; height: 16px; flex: none; transition: transform .45s var(--ease); }
+.btn:hover svg { transform: translateX(3px); }
+
+/* ---------- шапка ---------- */
+.nav-wrap {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 50;
+  padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0;
+  display: flex; justify-content: center; pointer-events: none;
+}
+.nav { pointer-events: auto; display: flex; align-items: center; gap: 8px; width: min(1160px, 100%); padding: 8px 8px 8px 22px; border-radius: 999px; }
+.nav .brand { display: flex; align-items: center; text-decoration: none; margin-right: auto; }
+.nav .brand img { height: 24px; width: auto; }
+.nav-links { display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: rgba(0,0,0,.22); }
+.nav-links a {
+  padding: 9px 18px; border-radius: 999px; text-decoration: none;
+  font-size: 14px; font-weight: 500; color: var(--ink-soft); transition: color .3s, background .3s;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-links a.active {
+  color: var(--ink);
+  background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px -4px rgba(0,0,0,.5);
+}
+.nav .btn { padding: 12px 20px; font-size: 14px; }
+
+/* ---------- типографика ---------- */
+.wrap { position: relative; z-index: 3; width: min(1160px, 100%); margin: 0 auto; padding-inline: 24px; }
+.page { padding-block: 140px 40px; }
+.page[hidden] { display: none !important; }
+.tag {
+  display: inline-flex; align-items: center; gap: 8px; width: fit-content;
+  padding: 7px 14px 7px 10px; border-radius: 999px;
+  font: 500 12px/1 var(--font-mono); letter-spacing: .04em; color: var(--gold-hi);
+  background: rgba(212,175,55,.08); box-shadow: inset 0 0 0 1px rgba(212,175,55,.25);
+}
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(46px, 7.2vw, 92px); line-height: .98; font-weight: 600; letter-spacing: -.045em; }
+h2 { font-size: clamp(34px, 4.6vw, 58px); line-height: 1.02; font-weight: 600; letter-spacing: -.04em; }
+h3 { font-size: 22px; line-height: 1.2; font-weight: 600; letter-spacing: -.02em; }
+.accent { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 60%, var(--gold-lo)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dim { color: var(--ink-mute); }
+p { margin: 0; }
+.lead { font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 31em; }
+section { margin-top: 140px; }
+.section-head { display: grid; gap: 18px; margin-bottom: 44px; max-width: 720px; }
+.section-head p { color: var(--ink-soft); font-size: 17px; max-width: 34em; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 40px; }
+.hero-text { display: grid; gap: 28px; min-width: 0; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.hero-visual { position: relative; justify-self: center; width: min(460px, 100%); aspect-ratio: 1; display: grid; place-items: center; }
+.globe {
+  width: 80%; height: auto; aspect-ratio: 298 / 290; max-width: 100%;
+  -webkit-mask-image: radial-gradient(circle, #000 56%, transparent 71%);
+  mask-image: radial-gradient(circle, #000 56%, transparent 71%);
+  animation: float 10s ease-in-out infinite;
+}
+.globe-halo { position: absolute; inset: 12%; border-radius: 50%; z-index: -1; background: radial-gradient(circle, rgba(212,175,55,.24), transparent 66%); filter: blur(34px); }
+.ring { position: absolute; inset: 2%; border-radius: 50%; border: 1px solid rgba(255,255,255,.08); animation: spin 70s linear infinite; }
+.ring::after { content: ""; position: absolute; top: 50%; left: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--gold-hi); box-shadow: 0 0 14px 2px rgba(240,214,124,.8); }
+.chip {
+  position: absolute; display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px 8px 8px; border-radius: 999px; white-space: nowrap;
+  font: 500 12px/1 var(--font-mono); color: var(--ink);
+  animation: float 8s ease-in-out infinite;
+}
+.chip img { width: 36px; height: auto; }
+.chip.c1 { left: -4%; top: 16%; }
+.chip.c2 { right: -4%; bottom: 16%; animation-delay: -4s; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- бенто-сетка ---------- */
+.bento { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.tile { padding: 32px; display: grid; gap: 16px; align-content: start; overflow: hidden; min-width: 0; }
+.tile p { color: var(--ink-soft); }
+.span-3 { grid-column: span 3; }
+.span-2 { grid-column: span 2; }
+.tile-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.tile-top img { width: 92px; height: auto; }
+.flag { filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); }
+.route-label { font: 500 12px/1 var(--font-mono); color: var(--ink-mute); letter-spacing: .04em; }
+.tile h3.big { font-size: clamp(34px, 3.6vw, 46px); letter-spacing: -.04em; line-height: 1; }
+.tile ul { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tile li { padding: 8px 14px; border-radius: 999px; font-size: 14px; color: var(--ink); background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--line); }
+.tile .tint { position: absolute; inset: auto -25% -50% auto; width: 75%; aspect-ratio: 1; border-radius: 50%; filter: blur(70px); z-index: -2; opacity: .35; }
+.tint.cn { background: #b5281f; }
+.tint.eu { background: #1f47b8; }
+.ic {
+  width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: var(--gold-hi);
+  background: linear-gradient(160deg, rgba(212,175,55,.26), rgba(212,175,55,.05));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(212,175,55,.2);
+}
+.ic svg { width: 21px; height: 21px; }
+
+/* ---------- услуги ---------- */
+.services { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.service { padding: 28px; border-radius: var(--r-l); display: grid; gap: 14px; align-content: start; transition: transform .5s var(--ease); }
+.service:hover { transform: translateY(-6px); }
+.service p { color: var(--ink-soft); font-size: 15px; }
+
+/* ---------- этапы ---------- */
+.steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.step { padding: 26px 22px; border-radius: var(--r-l); display: grid; gap: 10px; align-content: start; }
+.step .n { font: 500 13px/1 var(--font-mono); color: var(--gold-hi); }
+.step .bar { height: 3px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; margin-bottom: 8px; }
+.step .bar i { display: block; height: 100%; width: var(--w); background: linear-gradient(90deg, var(--gold-lo), var(--gold-hi)); border-radius: inherit; transform-origin: left; transform: scaleX(0); transition: transform 1.4s var(--ease) .3s; }
+.step.in .bar i, .no-io .step .bar i { transform: scaleX(1); }
+.step h3 { font-size: 20px; }
+.step p { font-size: 14px; color: var(--ink-soft); }
+
+/* ---------- контакты ---------- */
+.cta { padding: clamp(32px, 5.5vw, 64px); display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center; overflow: hidden; }
+.cta .glow { position: absolute; width: 60%; aspect-ratio: 1; right: -16%; top: -45%; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,.3), transparent 65%); filter: blur(40px); z-index: -2; }
+.cta-text { display: grid; gap: 18px; min-width: 0; }
+.cta-text p { color: var(--ink-soft); font-size: 17px; }
+.contacts { display: grid; gap: 12px; min-width: 0; }
+.contact { display: flex; align-items: center; gap: 14px; padding: 16px 16px 16px 20px; border-radius: 20px; background: rgba(0,0,0,.22); box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.contact > div { display: grid; gap: 4px; min-width: 0; margin-right: auto; }
+.contact .lbl { font: 500 11px/1 var(--font-mono); letter-spacing: .06em; color: var(--ink-mute); text-transform: uppercase; }
+.contact .val { font-size: 20px; font-weight: 500; letter-spacing: -.01em; user-select: all; overflow-wrap: anywhere; }
+.contact .val a { text-decoration: none; }
+.copy {
+  flex: none; padding: 10px 16px; border-radius: 999px; border: 0; cursor: pointer; color: var(--ink);
+  font: 500 13px var(--font-body);
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.05));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3);
+  transition: transform .3s var(--ease);
+}
+.copy:active { transform: scale(.94); }
+.copy.done { color: var(--gold-hi); }
+.note { font-size: 14px; color: var(--ink-mute); }
+.note a { color: var(--gold-hi); text-decoration: none; border-bottom: 1px solid rgba(212,175,55,.35); }
+
+/* ---------- о нас ---------- */
+.about-hero { display: grid; gap: 26px; max-width: 900px; }
+.about-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.about-grid .main { grid-column: span 4; padding: 40px; }
+.about-grid .side { grid-column: span 2; }
+.about-grid .main p { font-size: 17px; }
+.about-grid .main p strong { color: var(--ink); font-weight: 500; }
+.geo-row { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 18px; background: rgba(0,0,0,.2); box-shadow: inset 0 0 0 1px var(--line); }
+.geo-row img { width: 68px; height: auto; flex: none; }
+.geo-row b { display: block; font-weight: 600; font-size: 16px; }
+.geo-row span { font-size: 13px; color: var(--ink-soft); }
+.values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.value { padding: 30px; border-radius: var(--r-l); display: grid; gap: 14px; align-content: start; }
+.value p { color: var(--ink-soft); font-size: 15px; }
+
+footer { position: relative; z-index: 3; padding-block: 56px; color: var(--ink-mute); font-size: 13px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
+footer .inner { width: 100%; display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 28px; }
+footer img { height: 20px; width: auto; }
+
+/* ---------- отрасли ---------- */
+.industries { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.industry { padding: 22px; border-radius: 20px; display: grid; gap: 6px; align-content: start; }
+.industry b { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.industry span { font-size: 14px; color: var(--ink-soft); }
+
+/* ---------- логистика ---------- */
+.logi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.logi-card { padding: 30px; display: grid; gap: 18px; align-content: start; }
+.logi-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.logi-head img { width: 64px; height: auto; }
+.logi-rows { display: grid; }
+.logi-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--line); }
+.logi-row svg { width: 22px; height: 22px; color: var(--gold-hi); }
+.logi-row b { font-weight: 500; font-size: 16px; display: block; }
+.logi-row small { color: var(--ink-mute); font-size: 13px; }
+.logi-row .days { font: 500 14px/1 var(--font-mono); color: var(--ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.footnote { margin-top: 14px; font-size: 13px; color: var(--ink-mute); }
+
+/* ---------- вопросы ---------- */
+.faq { display: grid; gap: 12px; }
+.faq details { border-radius: 22px; }
+.faq summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding: 22px 26px; font-size: 18px; font-weight: 500; letter-spacing: -.01em;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .pm { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.07); box-shadow: inset 0 1px 0 rgba(255,255,255,.2); transition: transform .5s var(--ease), background .3s; }
+.faq summary .pm svg { width: 14px; height: 14px; }
+.faq details[open] summary .pm { transform: rotate(45deg); background: rgba(212,175,55,.2); color: var(--gold-hi); }
+.faq .ans { padding: 0 26px 24px; color: var(--ink-soft); max-width: 46em; }
+
+/* ---------- о нас: аудитория и языки ---------- */
+.audience { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.aud { padding: 26px; border-radius: var(--r-l); display: grid; gap: 12px; align-content: start; }
+.aud h3 { font-size: 19px; }
+.aud p { font-size: 14px; color: var(--ink-soft); }
+.langs { display: flex; flex-wrap: wrap; gap: 10px; }
+.lang { padding: 10px 16px; border-radius: 999px; background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; }
+.lang i { font-style: normal; font: 500 12px var(--font-mono); color: var(--gold-hi); margin-right: 8px; }
+.mission { padding: clamp(30px, 5vw, 56px); display: grid; gap: 18px; }
+.mission p.big { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.35; letter-spacing: -.02em; font-weight: 500; max-width: 30em; }
+
+@media (max-width: 980px) {
+  .industries, .audience { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .logi { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .industries, .audience { grid-template-columns: 1fr; }
+  .logi-card { padding: 24px; }
+  .faq summary { padding: 18px 20px; font-size: 16px; }
+  .faq .ans { padding: 0 20px 20px; }
+}
+
+/* ---------- готовые проекты ---------- */
+.page-hero { display: grid; gap: 26px; max-width: 920px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+.filter {
+  padding: 10px 18px; border-radius: 999px; border: 0; cursor: pointer; color: var(--ink-soft);
+  font: 500 14px/1 var(--font-body); background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--line);
+  transition: color .3s, background .3s, box-shadow .3s;
+}
+.filter:hover { color: var(--ink); }
+.filter[aria-pressed="true"] {
+  color: var(--ink); background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), inset 0 0 0 1px rgba(212,175,55,.35);
+}
+.projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.project { padding: 28px; border-radius: var(--r-l); display: grid; gap: 16px; align-content: start; grid-template-rows: auto auto 1fr auto auto; }
+.project[hidden] { display: none !important; }
+.project-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cat { font: 500 12px/1 var(--font-mono); color: var(--gold-hi); letter-spacing: .04em; }
+.status { font-size: 12px; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--ink-soft); white-space: nowrap; }
+.status.hot { color: var(--gold-hi); background: rgba(212,175,55,.12); }
+.project h3 { font-size: 22px; }
+.project p { color: var(--ink-soft); font-size: 15px; }
+.kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
+.kv div { display: grid; gap: 4px; min-width: 0; }
+.kv small { font: 500 11px/1.2 var(--font-mono); color: var(--ink-mute); text-transform: uppercase; letter-spacing: .04em; }
+.kv b { font-size: 17px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.project .more { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--gold-hi); text-decoration: none; width: fit-content; }
+.project .more svg { width: 14px; height: 14px; transition: transform .4s var(--ease); }
+.project .more:hover svg { transform: translateX(3px); }
+.includes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.include { padding: 24px; border-radius: 20px; display: flex; gap: 16px; align-items: flex-start; }
+.include .ic { flex: none; }
+.include b { display: block; font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.include span { font-size: 14px; color: var(--ink-soft); }
+.disclaimer { margin-top: 18px; font-size: 13px; color: var(--ink-mute); max-width: 60em; }
+
+/* ---------- инвестиции ---------- */
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.side-card { padding: 34px; display: grid; gap: 18px; align-content: start; }
+.side-card ul { list-style: none; padding: 0; margin: 0; display: grid; }
+.side-card li { display: flex; gap: 14px; padding: 13px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.side-card li::before { content: ""; flex: none; width: 6px; height: 6px; margin-top: 9px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.sample { padding: clamp(26px, 4.5vw, 52px); display: grid; gap: 40px; overflow: hidden; }
+.sample .glow { position: absolute; width: 55%; aspect-ratio: 1; left: -18%; top: -25%; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,.2), transparent 65%); filter: blur(40px); z-index: -2; }
+.sample-head { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px; align-items: end; }
+.sample-head h2 { font-size: clamp(30px, 4vw, 48px); }
+.sample-head p { color: var(--ink-soft); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.facts span { padding: 8px 14px; border-radius: 999px; font-size: 13px; background: rgba(255,255,255,.05); box-shadow: inset 0 0 0 1px var(--line); }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi { padding: 22px; border-radius: 20px; background: rgba(0,0,0,.22); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 6px; min-width: 0; }
+.kpi small { font: 500 11px/1.2 var(--font-mono); color: var(--ink-mute); text-transform: uppercase; letter-spacing: .05em; }
+.kpi b { white-space: nowrap; font-size: clamp(22px, 2.5vw, 32px); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 13px; color: var(--ink-soft); }
+.sample-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
+.block-title { font-size: 19px; margin-bottom: 18px; }
+.concept { display: grid; gap: 14px; }
+.concept p { color: var(--ink-soft); font-size: 15px; }
+/* структура вложений: горизонтальные столбцы */
+.bars { display: grid; gap: 14px; }
+.bar-row { display: grid; gap: 7px; position: relative; }
+.bar-row .lbl { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+.bar-row .lbl span:last-child { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 500; white-space: nowrap; }
+.bar-row .lbl span:first-child { color: var(--ink-soft); }
+.bar-track { height: 10px; border-radius: 4px; background: rgba(255,255,255,.06); overflow: hidden; }
+.bar-fill { height: 100%; width: var(--v); border-radius: 0 4px 4px 0; background: linear-gradient(90deg, var(--gold-lo), var(--gold)); transform-origin: left; transform: scaleX(0); transition: transform 1.3s var(--ease); }
+.bar-row:hover .bar-fill { background: linear-gradient(90deg, var(--gold), var(--gold-hi)); }
+.in .bar-fill, .no-io .bar-fill { transform: scaleX(1); }
+.bar-total { display: flex; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--line); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* окупаемость: линия */
+.chart-box { position: relative; }
+.chart-box svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart-box .axis text { fill: var(--ink-mute); font: 400 11px var(--font-mono); }
+.chart-box .grid line { stroke: rgba(255,255,255,.07); stroke-width: 1; }
+.chart-box .zero { stroke: rgba(255,255,255,.28); stroke-width: 1; }
+.chart-box .line { fill: none; stroke: var(--gold); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-box .area-neg { fill: rgba(255,255,255,.05); }
+.chart-box .area-pos { fill: rgba(212,175,55,.16); }
+.chart-box .mark { fill: var(--gold-hi); stroke: var(--bg); stroke-width: 2; }
+.chart-box .ann { fill: var(--ink); font: 500 12px var(--font-body); }
+.chart-box .cross { stroke: rgba(255,255,255,.35); stroke-width: 1; }
+.chart-box .dot { fill: var(--gold-hi); stroke: var(--bg); stroke-width: 2; }
+.tip {
+  position: absolute; pointer-events: none; padding: 9px 12px; border-radius: 12px; font-size: 13px; line-height: 1.35; white-space: nowrap;
+  background: rgba(8,14,28,.92); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14), 0 10px 30px rgba(0,0,0,.5);
+  transform: translate(-50%, calc(-100% - 12px)); opacity: 0; transition: opacity .15s;
+}
+.tip b { font-variant-numeric: tabular-nums; }
+.tip small { display: block; color: var(--ink-mute); font: 500 11px var(--font-mono); }
+.chart-note { font-size: 13px; color: var(--ink-mute); margin-top: 10px; }
+.formats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.format { padding: 22px; border-radius: 20px; background: rgba(0,0,0,.22); box-shadow: inset 0 0 0 1px var(--line); display: grid; gap: 8px; align-content: start; }
+.format b { font-size: 17px; font-weight: 600; }
+.format p { font-size: 14px; color: var(--ink-soft); }
+.risks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+.risk { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.risk b { font-weight: 500; }
+.risk span { color: var(--ink-soft); }
+.legal { font-size: 12.5px; color: var(--ink-mute); line-height: 1.55; }
+
+/* ---------- анонс на главной ---------- */
+.teaser { padding: 34px; display: grid; gap: 14px; align-content: start; text-decoration: none; transition: transform .5s var(--ease); }
+.teaser:hover { transform: translateY(-6px); }
+.teaser p { color: var(--ink-soft); }
+.teaser .more { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; color: var(--gold-hi); margin-top: 6px; }
+.teaser .more svg { width: 15px; height: 15px; transition: transform .4s var(--ease); }
+.teaser:hover .more svg { transform: translateX(4px); }
+
+@media (max-width: 980px) {
+  .projects, .includes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .two, .sample-head, .sample-grid, .risks { grid-template-columns: 1fr; }
+  .formats { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .projects, .includes { grid-template-columns: 1fr; }
+  .side-card, .teaser { padding: 26px; }
+  .risk { grid-template-columns: 1fr; gap: 4px; }
+  .nav { padding-left: 12px; gap: 6px; }
+  .nav .brand img { height: 20px; }
+  .nav-links { overflow-x: auto; min-width: 0; scrollbar-width: none; }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { padding: 8px 11px; font-size: 13px; white-space: nowrap; }
+  .nav .brand { display: none; }
+  .nav { justify-content: center; padding: 6px; }
+  .kv b { font-size: 15px; }
+  .kv small { font-size: 10px; }
+}
+
+/* ---------- заставка ---------- */
+.intro {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--bg-deep);
+  animation: intro-out .8s var(--ease) 1.5s forwards;
+}
+.intro img { width: 124px; height: auto; opacity: 0; filter: blur(12px); transform: scale(.88); animation: logo-in 1.2s var(--ease) .1s forwards; }
+@keyframes logo-in { to { opacity: 1; filter: blur(0); transform: scale(1); } }
+@keyframes intro-out { to { opacity: 0; visibility: hidden; } }
+
+/* выплывание снизу после заставки */
+.rise { animation: rise 1.1s var(--ease) both; animation-delay: calc(1.65s + var(--d, 0) * 110ms); }
+.page-switch .rise { animation-delay: calc(var(--d, 0) * 90ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
+
+/* всплытие при прокрутке */
+.js .reveal { opacity: 0; transform: translateY(80px) scale(.98); transition: opacity 1s var(--ease), transform 1.1s var(--ease); transition-delay: calc(var(--rd, 0) * 90ms); }
+.js .reveal.in { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .js .reveal { opacity: 1; transform: none; }
+  .step .bar i { transform: scaleX(1); }
+  html { scroll-behavior: auto; }
+}
+
+/* ---------- адаптив ---------- */
+@media (max-width: 980px) {
+  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .services { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  .hero, .cta { grid-template-columns: 1fr; }
+  .hero-visual { width: min(370px, 86%); margin-top: 10px; }
+  .span-3, .span-2, .about-grid .main, .about-grid .side { grid-column: 1 / -1; }
+  .values { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .wrap { padding-inline: 16px; }
+  .page { padding-top: 112px; }
+  section { margin-top: 96px; }
+  .nav { padding-left: 16px; }
+  .nav .btn { display: none; }
+  .services, .steps { grid-template-columns: 1fr; }
+  .tile, .about-grid .main { padding: 26px; }
+  .chip { font-size: 11px; }
+  .chip.c1 { left: -8%; }
+  .chip.c2 { right: -8%; }
+  .contact { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="intro" aria-hidden="true"><img src="mark.png" alt=""></div>
+<div class="sky" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span></div>
+
+<header class="nav-wrap">
+  <nav class="nav glass rise" style="--d:0" aria-label="Основное меню">
+    <a class="brand" href="#home" data-link="home"><img src="mark.png" alt="CTC"></a>
+    <div class="nav-links">
+      <a href="#home" data-link="home">Главная</a>
+      <a href="#projects" data-link="projects">Проекты</a>
+      <a href="#invest" data-link="invest">Инвестиции</a>
+      <a href="#about" data-link="about">О нас</a>
+    </div>
+    <a class="btn btn-gold" href="#contacts" data-scroll="contacts">Связаться</a>
+  </nav>
+</header>
+
+<!-- ================= ГЛАВНАЯ ================= -->
+<main class="page" id="page-home" data-page="home">
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-text">
+        <span class="tag rise" style="--d:1">Консалтинговая компания</span>
+        <h1 class="rise" style="--d:2">Бизнес без границ. <span class="accent">Европа и&nbsp;Китай.</span></h1>
+        <p class="lead rise" style="--d:3">Помогаем компаниям и предпринимателям работать с зарубежными партнёрами. Находим поставщиков, ведём переговоры и сопровождаем сделку до поставки.</p>
+        <div class="hero-actions rise" style="--d:4">
+          <a class="btn btn-gold" href="#contacts" data-scroll="contacts">Обсудить проект
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+          <a class="btn btn-glass glass" href="#about" data-link="about">О компании</a>
+        </div>
+      </div>
+      <div class="hero-visual rise" style="--d:3">
+        <div class="globe-halo"></div>
+        <div class="ring"></div>
+        <img class="globe" src="globe.png" alt="Рукопожатие на фоне земного шара">
+        <div class="chip glass c1"><img class="flag" src="flag1.png" alt="">RU → CN</div>
+        <div class="chip glass c2"><img class="flag" src="flag2.png" alt="">RU → EU</div>
+      </div>
+    </div>
+
+    <!-- направления + преимущества -->
+    <section aria-labelledby="routes-title">
+      <div class="section-head">
+        <span class="tag reveal">Направления</span>
+        <h2 class="reveal" id="routes-title" style="--rd:1">Два рынка. <span class="dim">Одна команда, которая знает оба.</span></h2>
+      </div>
+      <div class="bento">
+        <article class="tile glass span-3 reveal">
+          <div class="tint cn"></div>
+          <div class="tile-top"><span class="route-label">Россия — Китай</span><img class="flag" src="flag1.png" alt="Флаги России и Китая"></div>
+          <h3 class="big">Китай</h3>
+          <p>Закупки у производителей, контрактное производство и выход на китайский рынок.</p>
+          <ul><li>Проверка фабрик</li><li>Переговоры на китайском</li><li>Контроль качества</li><li>Доставка</li></ul>
+        </article>
+        <article class="tile glass span-3 reveal" style="--rd:1">
+          <div class="tint eu"></div>
+          <div class="tile-top"><span class="route-label">Россия — Европа</span><img class="flag" src="flag2.png" alt="Флаги России и Евросоюза"></div>
+          <h3 class="big">Европа</h3>
+          <p>Поставки оборудования и товаров, поиск партнёров и представителей в странах ЕС.</p>
+          <ul><li>Подбор поставщиков</li><li>Контракты</li><li>Сертификация</li><li>Логистика</li></ul>
+        </article>
+        <div class="tile glass span-2 reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c1.2-4 4-6 7.5-6s6.3 2 7.5 6"/></svg></div>
+          <h3>Личный менеджер</h3>
+          <p>Один человек ведёт ваш проект от первого звонка до поставки.</p>
+        </div>
+        <div class="tile glass span-2 reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+          <h3>Конфиденциально</h3>
+          <p>Детали ваших сделок остаются между вами и нами.</p>
+        </div>
+        <div class="tile glass span-2 reveal" style="--rd:2">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+          <h3>Под ключ</h3>
+          <p>Берём на себя переговоры, документы, таможню и логистику.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- услуги -->
+    <section aria-labelledby="services-title">
+      <div class="section-head">
+        <span class="tag reveal">Услуги</span>
+        <h2 class="reveal" id="services-title" style="--rd:1">Всё для сделки <span class="dim">в одних руках</span></h2>
+      </div>
+      <div class="services">
+        <div class="service glass reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></div>
+          <h3>Поиск партнёров</h3>
+          <p>Находим производителей, поставщиков и покупателей. Проверяем репутацию и документы.</p>
+        </div>
+        <div class="service glass reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h11a3 3 0 0 1 3 3v3H8l-4 4z"/><path d="M18 12h2v8l-3-3h-6v-3"/></svg></div>
+          <h3>Переговоры</h3>
+          <p>Ведём переговоры на языке партнёра и добиваемся выгодных условий.</p>
+        </div>
+        <div class="service glass reveal" style="--rd:2">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></div>
+          <h3>Контракты и ВЭД</h3>
+          <p>Внешнеторговые договоры, валютный контроль и полный пакет документов.</p>
+        </div>
+        <div class="service glass reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></div>
+          <h3>Таможня</h3>
+          <p>Подбираем коды ТН ВЭД, рассчитываем пошлины и проводим груз через таможню.</p>
+        </div>
+        <div class="service glass reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg></div>
+          <h3>Логистика</h3>
+          <p>Доставка автомобилем, морем или по железной дороге с отслеживанием груза.</p>
+        </div>
+        <div class="service glass reveal" style="--rd:2">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>
+          <h3>Анализ рынка</h3>
+          <p>Оцениваем спрос, цены и конкурентов, чтобы решение опиралось на факты.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- отрасли -->
+    <section aria-labelledby="ind-title">
+      <div class="section-head">
+        <span class="tag reveal">Отрасли</span>
+        <h2 class="reveal" id="ind-title" style="--rd:1">С какими товарами <span class="dim">мы работаем</span></h2>
+        <p class="reveal" style="--rd:2">Мы ведём сделки в разных отраслях. Если вашей нет в списке, напишите нам — скорее всего, мы тоже сможем помочь.</p>
+      </div>
+      <div class="industries">
+        <div class="industry glass reveal"><b>Оборудование</b><span>Промышленное, пищевое, строительное, станки и линии</span></div>
+        <div class="industry glass reveal" style="--rd:1"><b>Продукты и напитки</b><span>Импорт и экспорт продуктов питания, напитков и сырья</span></div>
+        <div class="industry glass reveal" style="--rd:2"><b>Стройматериалы</b><span>Отделочные материалы, сантехника, инженерные системы</span></div>
+        <div class="industry glass reveal" style="--rd:3"><b>Электроника</b><span>Комплектующие, бытовая и промышленная электроника</span></div>
+        <div class="industry glass reveal"><b>Автозапчасти</b><span>Запчасти, шины, аксессуары и спецтехника</span></div>
+        <div class="industry glass reveal" style="--rd:1"><b>Текстиль и одежда</b><span>Ткани, одежда и обувь под вашей маркой</span></div>
+        <div class="industry glass reveal" style="--rd:2"><b>Мебель и интерьер</b><span>Мебель, свет и предметы интерьера</span></div>
+        <div class="industry glass reveal" style="--rd:3"><b>Товары для маркетплейсов</b><span>Поиск ходовых товаров и производство партий</span></div>
+      </div>
+    </section>
+
+    <!-- логистика -->
+    <section aria-labelledby="logi-title">
+      <div class="section-head">
+        <span class="tag reveal">Логистика</span>
+        <h2 class="reveal" id="logi-title" style="--rd:1">Доставка <span class="dim">под ваш срок и бюджет</span></h2>
+        <p class="reveal" style="--rd:2">Подбираем маршрут под груз: срочную партию отправим самолётом, крупную — морем или по железной дороге.</p>
+      </div>
+      <div class="logi">
+        <div class="logi-card glass reveal">
+          <div class="logi-head"><h3>Из Китая</h3><img class="flag" src="flag1.png" alt="Флаги России и Китая"></div>
+          <div class="logi-rows">
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><div><b>Автомобилем</b><small>Сборные и полные фуры</small></div><span class="days">15–25 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="5" y="4" width="14" height="12" rx="2"/><path d="M5 11h14M8 19l-2 2M16 19l2 2M9 16v3M15 16v3"/></svg><div><b>Железной дорогой</b><small>Контейнеры до Москвы и регионов</small></div><span class="days">18–30 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2 4h14l2-4zM6 15V9h12v6M12 9V4"/></svg><div><b>Море + ж/д</b><small>Крупные партии, лучшая цена</small></div><span class="days">35–50 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5L3 11l1.5-1.5 8 1L17 6a2 2 0 0 1 3 3l-4.5 4.5 1 8L15 23l-2.5-7.5"/></svg><div><b>Самолётом</b><small>Срочные и ценные грузы</small></div><span class="days">3–7 дн.</span></div>
+          </div>
+        </div>
+        <div class="logi-card glass reveal" style="--rd:1">
+          <div class="logi-head"><h3>Из Европы</h3><img class="flag" src="flag2.png" alt="Флаги России и Евросоюза"></div>
+          <div class="logi-rows">
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><div><b>Автомобилем</b><small>Через транзитные страны</small></div><span class="days">10–20 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2 4h14l2-4zM6 15V9h12v6M12 9V4"/></svg><div><b>Морем</b><small>Контейнеры через порты-хабы</small></div><span class="days">30–45 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5L3 11l1.5-1.5 8 1L17 6a2 2 0 0 1 3 3l-4.5 4.5 1 8L15 23l-2.5-7.5"/></svg><div><b>Самолётом</b><small>Срочные и ценные грузы</small></div><span class="days">5–10 дн.</span></div>
+            <div class="logi-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg><div><b>Таможня</b><small>Оформление в России под ключ</small></div><span class="days">1–3 дн.</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="footnote reveal">Сроки ориентировочные. Точный срок и стоимость рассчитываем под ваш груз и маршрут.</p>
+    </section>
+
+    <!-- этапы -->
+    <section aria-labelledby="steps-title">
+      <div class="section-head">
+        <span class="tag reveal">Как мы работаем</span>
+        <h2 class="reveal" id="steps-title" style="--rd:1">Пять шагов <span class="dim">от заявки до поставки</span></h2>
+      </div>
+      <div class="steps">
+        <div class="step glass reveal" style="--w:20%"><span class="n">01</span><div class="bar"><i></i></div><h3>Заявка</h3><p>Вы рассказываете о задаче, мы уточняем детали.</p></div>
+        <div class="step glass reveal" style="--rd:1;--w:40%"><span class="n">02</span><div class="bar"><i></i></div><h3>Анализ</h3><p>Предлагаем решение со сроками и бюджетом.</p></div>
+        <div class="step glass reveal" style="--rd:2;--w:60%"><span class="n">03</span><div class="bar"><i></i></div><h3>Поиск</h3><p>Подбираем и проверяем партнёров.</p></div>
+        <div class="step glass reveal" style="--rd:3;--w:80%"><span class="n">04</span><div class="bar"><i></i></div><h3>Сделка</h3><p>Согласуем условия и подписываем контракт.</p></div>
+        <div class="step glass reveal" style="--rd:4;--w:100%"><span class="n">05</span><div class="bar"><i></i></div><h3>Поставка</h3><p>Доставляем товар и закрываем документы.</p></div>
+      </div>
+    </section>
+
+    <!-- анонс: проекты и инвестиции -->
+    <section aria-labelledby="teaser-title">
+      <div class="section-head">
+        <span class="tag reveal">Для инвесторов</span>
+        <h2 class="reveal" id="teaser-title" style="--rd:1">Готовый бизнес <span class="dim">и инвестиции</span></h2>
+      </div>
+      <div class="two">
+        <a class="teaser glass reveal" href="#projects" data-link="projects">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"/></svg></div>
+          <h3>Готовые бизнес-проекты</h3>
+          <p>Просчитанные проекты с бизнес-планом, поставщиками и оборудованием. Остаётся выбрать и запустить.</p>
+          <span class="more">Смотреть проекты <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </a>
+        <a class="teaser glass reveal" style="--rd:1" href="#invest" data-link="invest">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div>
+          <h3>Поможем с инвестициями</h3>
+          <p>Подберём проект под ваш капитал или найдём инвестора для вашей идеи. Пример: ресторан паназиатской кухни.</p>
+          <span class="more">Подробнее <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+        </a>
+      </div>
+    </section>
+
+    <!-- вопросы -->
+    <section aria-labelledby="faq-title">
+      <div class="section-head">
+        <span class="tag reveal">Вопросы</span>
+        <h2 class="reveal" id="faq-title" style="--rd:1">Частые вопросы</h2>
+      </div>
+      <div class="faq">
+        <details class="glass reveal" open>
+          <summary>С чего начинается работа?<span class="pm"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg></span></summary>
+          <p class="ans">С короткого разговора. Вы рассказываете, что хотите купить, продать или наладить, а мы задаём уточняющие вопросы. После этого присылаем план работ со сроками и стоимостью.</p>
+        </details>
+        <details class="glass reveal" style="--rd:1">
+          <summary>Можно заказать только одну услугу?<span class="pm"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg></span></summary>
+          <p class="ans">Да. Можно поручить нам только поиск поставщика, проверку фабрики, переговоры или логистику. Но удобнее всего, когда мы ведём сделку целиком.</p>
+        </details>
+        <details class="glass reveal" style="--rd:2">
+          <summary>Как вы проверяете поставщиков?<span class="pm"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg></span></summary>
+          <p class="ans">Проверяем регистрацию компании, историю и отзывы, запрашиваем образцы. При необходимости посещаем производство и проверяем товар перед отгрузкой.</p>
+        </details>
+        <details class="glass reveal" style="--rd:3">
+          <summary>Работаете ли вы с небольшими партиями?<span class="pm"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg></span></summary>
+          <p class="ans">Да. Небольшие партии можно отправить сборным грузом, так доставка обойдётся дешевле.</p>
+        </details>
+        <details class="glass reveal" style="--rd:4">
+          <summary>Как сохраняется конфиденциальность?<span class="pm"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 1v12M1 7h12"/></svg></span></summary>
+          <p class="ans">Информация о вашей сделке доступна только менеджеру проекта. По вашему запросу подписываем соглашение о неразглашении.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- контакты -->
+    <section id="contacts" aria-labelledby="contacts-title">
+      <div class="cta glass reveal">
+        <div class="glow"></div>
+        <div class="cta-text">
+          <span class="tag">Контакты</span>
+          <h2 id="contacts-title">Расскажите о&nbsp;задаче</h2>
+          <p>Напишите или позвоните. Ответим в течение рабочего дня и предложим, с чего начать.</p>
+          <p class="note">Сайт наших партнёров: <a href="http://www.gooddrinks.ru" target="_blank" rel="noopener">gooddrinks.ru</a></p>
+        </div>
+        <div class="contacts">
+          <div class="contact">
+            <div><span class="lbl">Почта</span><span class="val"><a href="mailto:info@ctc-world.ru">info@ctc-world.ru</a></span></div>
+            <button class="copy" type="button" data-copy="info@ctc-world.ru">Копировать</button>
+          </div>
+          <div class="contact">
+            <div><span class="lbl">Телефон</span><span class="val"><a href="tel:+79636303797">+7 963 630 37 97</a></span></div>
+            <button class="copy" type="button" data-copy="+7 963 630 37 97">Копировать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ================= ГОТОВЫЕ ПРОЕКТЫ ================= -->
+<main class="page" id="page-projects" data-page="projects" hidden>
+  <div class="wrap">
+    <div class="page-hero">
+      <span class="tag rise" style="--d:1">Готовые бизнес-проекты</span>
+      <h1 class="rise" style="--d:2">Бизнес, который <span class="accent">уже просчитан</span></h1>
+      <p class="lead rise" style="--d:3">Мы готовим проекты под ключ: от бизнес-плана и поставщиков до открытия. Выберите направление, а запуск мы возьмём на себя.</p>
+    </div>
+
+    <section aria-labelledby="proj-title" style="margin-top:80px">
+      <h2 class="reveal" id="proj-title" style="font-size:clamp(28px,3.4vw,40px);margin-bottom:22px">Проекты</h2>
+      <div class="filters reveal" role="group" aria-label="Фильтр по отрасли">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">Все</button>
+        <button class="filter" type="button" data-filter="food" aria-pressed="false">Общепит</button>
+        <button class="filter" type="button" data-filter="trade" aria-pressed="false">Торговля</button>
+        <button class="filter" type="button" data-filter="prod" aria-pressed="false">Производство</button>
+      </div>
+      <div class="projects">
+        <article class="project glass reveal" data-cat="food" style="--rd:0">
+          <div class="project-top"><span class="cat">Общепит</span><span class="status">Московская обл.</span></div>
+          <h3>Кофейня формата to-go</h3>
+          <p>Компактная кофейня 25–40 м² у метро или в ЖК. Оборудование, поставщик зерна и меню уже подобраны.</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>3,5 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>12–14 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~300 тыс. ₽</b></div>
+          </div>
+          <a class="more" href="#contacts-projects" data-scroll="contacts-projects">Запросить бизнес-план <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+        <article class="project glass reveal" data-cat="food" style="--rd:1">
+          <div class="project-top"><span class="cat">Общепит</span><span class="status hot">Подробный расчёт</span></div>
+          <h3>Ресторан паназиатской кухни</h3>
+          <p>Ресторан на 70 мест с открытой кухней. Кухонное оборудование поставляется из Китая. Подробный расчёт в разделе «Инвестиции».</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>28 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>~19 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~1,6 млн ₽</b></div>
+          </div>
+          <a class="more" href="#invest" data-link="invest">Смотреть расчёт <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+        <article class="project glass reveal" data-cat="trade" style="--rd:2">
+          <div class="project-top"><span class="cat">Торговля</span><span class="status">Онлайн</span></div>
+          <h3>Магазин на маркетплейсах</h3>
+          <p>Собственный бренд товаров для дома с производством в Китае. Готовы поставщики, упаковка и карточки товаров.</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>6 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>8–10 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~650 тыс. ₽</b></div>
+          </div>
+          <a class="more" href="#contacts-projects" data-scroll="contacts-projects">Запросить бизнес-план <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+        <article class="project glass reveal" data-cat="food" style="--rd:0">
+          <div class="project-top"><span class="cat">Общепит</span><span class="status">Москва и МО</span></div>
+          <h3>Пекарня-кондитерская</h3>
+          <p>Пекарня полного цикла с залом на 20 мест. Печи и тестомесы от европейских производителей.</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>9 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>16–18 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~550 тыс. ₽</b></div>
+          </div>
+          <a class="more" href="#contacts-projects" data-scroll="contacts-projects">Запросить бизнес-план <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+        <article class="project glass reveal" data-cat="prod" style="--rd:1">
+          <div class="project-top"><span class="cat">Производство</span><span class="status">Московская обл.</span></div>
+          <h3>Производство упаковки</h3>
+          <p>Мини-цех по выпуску картонной и бумажной упаковки. Линия под ключ из Китая с пусконаладкой.</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>22 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>24–26 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~950 тыс. ₽</b></div>
+          </div>
+          <a class="more" href="#contacts-projects" data-scroll="contacts-projects">Запросить бизнес-план <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+        <article class="project glass reveal" data-cat="trade" style="--rd:2">
+          <div class="project-top"><span class="cat">Торговля</span><span class="status">Москва</span></div>
+          <h3>Шоурум мебели</h3>
+          <p>Салон мебели и света с прямыми поставками от фабрик Китая и Европы. Ассортимент и условия уже согласованы.</p>
+          <div class="kv">
+            <div><small>Вложения</small><b>12 млн ₽</b></div>
+            <div><small>Окупаемость</small><b>18–20 мес.</b></div>
+            <div><small>Прибыль/мес</small><b>~650 тыс. ₽</b></div>
+          </div>
+          <a class="more" href="#contacts-projects" data-scroll="contacts-projects">Запросить бизнес-план <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+        </article>
+      </div>
+      <p class="disclaimer reveal">Проекты приведены как примеры. Показатели ориентировочные и уточняются под конкретную локацию и условия.</p>
+    </section>
+
+    <section aria-labelledby="inc-title">
+      <div class="section-head">
+        <span class="tag reveal">Что входит</span>
+        <h2 class="reveal" id="inc-title" style="--rd:1">Что вы получаете <span class="dim">вместе с проектом</span></h2>
+      </div>
+      <div class="includes">
+        <div class="include glass reveal" style="--rd:0"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></div><div><b>Бизнес-план и финмодель</b><span>Расчёт вложений, выручки и окупаемости</span></div></div>
+        <div class="include glass reveal" style="--rd:1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></div><div><b>Поставщики и оборудование</b><span>Проверенные фабрики в Китае и Европе</span></div></div>
+        <div class="include glass reveal" style="--rd:2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V9l8-6 8 6v12z"/><path d="M9 21v-7h6v7"/></svg></div><div><b>Подбор помещения</b><span>Локация, трафик и условия аренды</span></div></div>
+        <div class="include glass reveal" style="--rd:0"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div><div><b>Документы и разрешения</b><span>Регистрация, лицензии, договоры</span></div></div>
+        <div class="include glass reveal" style="--rd:1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.4 3.2-5.2 6-5.2s5.2 1.8 6 5.2"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.6c2.6 0 4.4 1.6 5 4.4"/></svg></div><div><b>Команда и запуск</b><span>Найм, обучение и открытие</span></div></div>
+        <div class="include glass reveal" style="--rd:2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div><b>Сопровождение</b><span>Контроль показателей первые 3 месяца</span></div></div>
+      </div>
+    </section>
+
+    <div id="contacts-projects"></div>
+    <section>
+      <div class="cta glass reveal">
+        <div class="glow"></div>
+        <div class="cta-text">
+          <span class="tag">Запрос</span>
+          <h2>Выберите проект <span class="dim">или предложите свой</span></h2>
+          <p>Пришлём полный бизнес-план и финансовую модель по интересующему проекту.</p>
+        </div>
+        <div class="contacts">
+          <div class="contact">
+            <div><span class="lbl">Почта</span><span class="val"><a href="mailto:info@ctc-world.ru">info@ctc-world.ru</a></span></div>
+            <button class="copy" type="button" data-copy="info@ctc-world.ru">Копировать</button>
+          </div>
+          <div class="contact">
+            <div><span class="lbl">Телефон</span><span class="val"><a href="tel:+79636303797">+7 963 630 37 97</a></span></div>
+            <button class="copy" type="button" data-copy="+7 963 630 37 97">Копировать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ================= ИНВЕСТИЦИИ ================= -->
+<main class="page" id="page-invest" data-page="invest" hidden>
+  <div class="wrap">
+    <div class="page-hero">
+      <span class="tag rise" style="--d:1">Инвестиции</span>
+      <h1 class="rise" style="--d:2">Поможем <span class="accent">с инвестициями</span></h1>
+      <p class="lead rise" style="--d:3">Подбираем проекты для вложений, проверяем их и сопровождаем сделку. Помогаем и тем, кто ищет деньги на запуск или развитие бизнеса.</p>
+    </div>
+
+    <section style="margin-top:80px">
+      <div class="two">
+        <div class="side-card glass reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div>
+          <h3 style="font-size:26px;letter-spacing:-.03em">Инвесторам</h3>
+          <ul>
+            <li>Подберём проект под ваш капитал и цели</li>
+            <li>Проверим бизнес и команду до вложения денег</li>
+            <li>Оформим участие договором: доля, заём или партнёрство</li>
+            <li>Будем присылать отчёты о результатах каждый месяц</li>
+          </ul>
+        </div>
+        <div class="side-card glass reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c1.2-4 4-6 7.5-6s6.3 2 7.5 6"/></svg></div>
+          <h3 style="font-size:26px;letter-spacing:-.03em">Предпринимателям</h3>
+          <ul>
+            <li>Упакуем проект: бизнес-план, финмодель, презентация</li>
+            <li>Найдём инвестора или партнёра под вашу задачу</li>
+            <li>Проведём переговоры и согласуем условия</li>
+            <li>Поможем закупить оборудование в Китае и Европе</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="inv-steps">
+      <div class="section-head">
+        <span class="tag reveal">Как мы работаем</span>
+        <h2 class="reveal" id="inv-steps" style="--rd:1">Четыре шага <span class="dim">к надёжной сделке</span></h2>
+      </div>
+      <div class="services" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div class="service glass reveal" style="--rd:0"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></div><h3>Подбор проекта</h3><p>Предлагаем проекты под вашу сумму, сроки и ожидаемую доходность.</p></div>
+        <div class="service glass reveal" style="--rd:1"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Проверка</h3><p>Изучаем финансы, юридическую чистоту и реалистичность бизнес-плана.</p></div>
+        <div class="service glass reveal" style="--rd:2"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></div><h3>Оформление сделки</h3><p>Готовим договор, долю или заём и защищаем ваши интересы.</p></div>
+        <div class="service glass reveal" style="--rd:3"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><h3>Контроль</h3><p>Ежемесячно присылаем отчёт о выручке, расходах и прибыли.</p></div>
+      </div>
+    </section>
+
+    <!-- образец: ресторан -->
+    <section aria-labelledby="sample-title">
+      <div class="section-head">
+        <span class="tag reveal">Образец проекта</span>
+        <h2 class="reveal" style="--rd:1">Так выглядит <span class="dim">проект для инвестора</span></h2>
+      </div>
+      <article class="sample glass reveal">
+        <div class="glow"></div>
+        <div class="sample-head">
+          <div style="display:grid;gap:14px">
+            <span class="cat">Общепит · Москва</span>
+            <h2 id="sample-title">Ресторан паназиатской кухни</h2>
+            <div class="facts"><span>180 м²</span><span>70 посадочных мест</span><span>Открытая кухня</span><span>Доставка</span></div>
+          </div>
+          <p>Ресторан с открытой кухней и баром в спальном районе с высоким трафиком. В меню вок, дим-самы, рамен и азиатские напитки. Кухонное оборудование закупаем напрямую у производителей в Китае.</p>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><small>Вложения</small><b>28 млн ₽</b><span>с резервом на запуск</span></div>
+          <div class="kpi"><small>Окупаемость</small><b>~19 мес.</b><span>с учётом раскрутки</span></div>
+          <div class="kpi"><small>Выручка в месяц</small><b>~11,9 млн ₽</b><span>180 гостей × 2 200 ₽</span></div>
+          <div class="kpi"><small>Прибыль в месяц</small><b>~1,6 млн ₽</b><span>после выхода на план</span></div>
+        </div>
+
+        <div class="sample-grid">
+          <div>
+            <h3 class="block-title">Куда идут вложения</h3>
+            <div class="bars">
+              <div class="bar-row" title="Ремонт и дизайн интерьера: 9,5 млн ₽ (34%)"><div class="lbl"><span>Ремонт и дизайн интерьера</span><span>9,5 млн ₽</span></div><div class="bar-track"><div class="bar-fill" style="--v:100.0%"></div></div></div>
+              <div class="bar-row" title="Кухонное оборудование (Китай и Европа): 7 млн ₽ (25%)"><div class="lbl"><span>Кухонное оборудование (Китай и Европа)</span><span>7 млн ₽</span></div><div class="bar-track"><div class="bar-fill" style="--v:73.7%"></div></div></div>
+              <div class="bar-row" title="Мебель, свет, посуда: 4,5 млн ₽ (16%)"><div class="lbl"><span>Мебель, свет, посуда</span><span>4,5 млн ₽</span></div><div class="bar-track"><div class="bar-fill" style="--v:47.4%"></div></div></div>
+              <div class="bar-row" title="Запуск: персонал, обучение, реклама: 3 млн ₽ (11%)"><div class="lbl"><span>Запуск: персонал, обучение, реклама</span><span>3 млн ₽</span></div><div class="bar-track"><div class="bar-fill" style="--v:31.6%"></div></div></div>
+              <div class="bar-row" title="Оборотные средства и резерв: 4 млн ₽ (14%)"><div class="lbl"><span>Оборотные средства и резерв</span><span>4 млн ₽</span></div><div class="bar-track"><div class="bar-fill" style="--v:42.1%"></div></div></div>
+              <div class="bar-total"><span>Итого</span><span>28 млн ₽</span></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="block-title">Путь к окупаемости</h3>
+            <div class="chart-box" id="payback">
+              <div class="tip" id="payback-tip"></div>
+            </div>
+            <p class="chart-note">Накопленный денежный поток инвестора, млн ₽. Первые 3 месяца ресторан выходит на плановую загрузку.</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="block-title">Форматы участия</h3>
+          <div class="formats">
+            <div class="format"><b>Доля в бизнесе</b><p>Вы получаете долю в компании и часть прибыли пропорционально вложениям.</p></div>
+            <div class="format"><b>Заём под процент</b><p>Фиксированный доход по графику платежей, без участия в управлении.</p></div>
+            <div class="format"><b>Совместное партнёрство</b><p>Несколько инвесторов вкладываются в проект вместе, мы ведём управление.</p></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="block-title">Риски и как мы их снижаем</h3>
+          <div class="risks">
+            <div class="risk"><b>Низкий поток гостей</b><span>Анализ локации до подписания аренды, запуск доставки с первого дня</span></div>
+            <div class="risk"><b>Рост цен на продукты</b><span>Договоры с поставщиками на фиксированные цены, пересмотр меню раз в квартал</span></div>
+            <div class="risk"><b>Задержка открытия</b><span>Оборудование заказываем заранее, график работ с подрядчиком в договоре</span></div>
+            <div class="risk"><b>Кадры</b><span>Шеф-повар и управляющий подбираются до старта, обучение команды за 3 недели</span></div>
+          </div>
+        </div>
+
+        <p class="legal">Это образец, а не реальное предложение. Цифры расчётные и приведены для примера. Фактические результаты зависят от локации, рынка и управления. Доходность инвестиций не гарантируется.</p>
+      </article>
+    </section>
+
+    <section>
+      <div class="cta glass reveal">
+        <div class="glow"></div>
+        <div class="cta-text">
+          <span class="tag">Консультация</span>
+          <h2>Обсудим ваши <span class="dim">инвестиции</span></h2>
+          <p>Расскажите, сколько вы готовы вложить или сколько ищете. Пришлём подходящие проекты и полную финмодель.</p>
+        </div>
+        <div class="contacts">
+          <div class="contact">
+            <div><span class="lbl">Почта</span><span class="val"><a href="mailto:info@ctc-world.ru">info@ctc-world.ru</a></span></div>
+            <button class="copy" type="button" data-copy="info@ctc-world.ru">Копировать</button>
+          </div>
+          <div class="contact">
+            <div><span class="lbl">Телефон</span><span class="val"><a href="tel:+79636303797">+7 963 630 37 97</a></span></div>
+            <button class="copy" type="button" data-copy="+7 963 630 37 97">Копировать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ================= О НАС ================= -->
+<main class="page" id="page-about" data-page="about" hidden>
+  <div class="wrap">
+    <div class="about-hero">
+      <span class="tag rise" style="--d:1">О нас</span>
+      <h1 class="rise" style="--d:2">CTC — <span class="accent">Consulting Trading Company</span></h1>
+      <p class="lead rise" style="--d:3">Консалтинговая и торговая компания. Мы помогаем бизнесу уверенно работать с партнёрами из Китая и Европы.</p>
+    </div>
+
+    <section>
+      <div class="about-grid">
+        <div class="tile glass main reveal">
+          <h2 style="font-size:clamp(28px,3.2vw,38px)">Кто мы</h2>
+          <p>Наша команда — специалисты по внешней торговле, логистике и международному праву. Мы знаем, как устроены закупки в Китае и поставки из Европы, и говорим с партнёрами на их языке.</p>
+          <p>Мы <strong>отвечаем за результат на каждом этапе</strong>: от первой встречи с поставщиком до доставки и закрывающих документов. Вместо десятка подрядчиков у вас один личный менеджер.</p>
+        </div>
+        <div class="tile glass side reveal" style="--rd:1">
+          <span class="route-label">География</span>
+          <div class="geo-row"><img class="flag" src="flag1.png" alt=""><div><b>Россия — Китай</b><span>закупки, производство, экспорт</span></div></div>
+          <div class="geo-row"><img class="flag" src="flag2.png" alt=""><div><b>Россия — Европа</b><span>оборудование, товары, партнёрства</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="mission glass reveal">
+        <span class="tag">Миссия</span>
+        <p class="big">Мы хотим, чтобы работа с зарубежным партнёром была для вас такой же простой и предсказуемой, как сделка с соседней компанией.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <span class="tag reveal">Для кого</span>
+        <h2 class="reveal" style="--rd:1">Кому мы помогаем</h2>
+      </div>
+      <div class="audience">
+        <div class="aud glass reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 21V10l6 4V10l6 4V5h6v16z"/></svg></div>
+          <h3>Производствам</h3><p>Закупка оборудования, сырья и комплектующих за рубежом.</p>
+        </div>
+        <div class="aud glass reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 9l1.5-5h13L20 9M4 9h16v11H4zM9 20v-6h6v6"/></svg></div>
+          <h3>Торговым компаниям</h3><p>Новые поставщики, лучшие цены и стабильные поставки.</p>
+        </div>
+        <div class="aud glass reveal" style="--rd:2">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+          <h3>Экспортёрам</h3><p>Выход российских товаров на рынки Китая и Европы.</p>
+        </div>
+        <div class="aud glass reveal" style="--rd:3">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20.5c1.2-4 4-6 7.5-6s6.3 2 7.5 6"/></svg></div>
+          <h3>Предпринимателям</h3><p>Запуск своего товара или бренда с производством за рубежом.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="about-grid">
+        <div class="tile glass main reveal">
+          <span class="route-label">Языки</span>
+          <h3 style="font-size:clamp(24px,2.6vw,32px);letter-spacing:-.03em">Говорим с партнёрами на их языке</h3>
+          <p>Переговоры, переписку и документы ведём сами, без посредников-переводчиков. Так меньше недопонимания и быстрее результат.</p>
+          <div class="langs">
+            <span class="lang"><i>RU</i>Русский</span>
+            <span class="lang"><i>EN</i>Английский</span>
+            <span class="lang"><i>ZH</i>Китайский</span>
+          </div>
+        </div>
+        <div class="tile glass side reveal" style="--rd:1">
+          <span class="route-label">Режим работы</span>
+          <h3>Пн–Пт, 9:00–19:00 (МСК)</h3>
+          <p>Срочные вопросы по текущим поставкам решаем и в выходные.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <span class="tag reveal">Принципы</span>
+        <h2 class="reveal" style="--rd:1">На чём держится <span class="dim">наша работа</span></h2>
+      </div>
+      <div class="values">
+        <div class="value glass reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2" stroke-linecap="round"/></svg></div>
+          <h3>Скорость</h3><p>Отвечаем в течение рабочего дня и держим вас в курсе на каждом шаге.</p>
+        </div>
+        <div class="value glass reveal" style="--rd:1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></div>
+          <h3>Надёжность</h3><p>Работаем с проверенными партнёрами и фиксируем всё в договоре.</p>
+        </div>
+        <div class="value glass reveal" style="--rd:2">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/></svg></div>
+          <h3>Прозрачность</h3><p>Вы видите все условия, цены и этапы сделки.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="cta glass reveal">
+        <div class="glow"></div>
+        <div class="cta-text">
+          <span class="tag">Контакты</span>
+          <h2>Готовы начать?</h2>
+          <p>Свяжитесь с нами, и мы обсудим вашу задачу.</p>
+        </div>
+        <div class="contacts">
+          <div class="contact">
+            <div><span class="lbl">Почта</span><span class="val"><a href="mailto:info@ctc-world.ru">info@ctc-world.ru</a></span></div>
+            <button class="copy" type="button" data-copy="info@ctc-world.ru">Копировать</button>
+          </div>
+          <div class="contact">
+            <div><span class="lbl">Телефон</span><span class="val"><a href="tel:+79636303797">+7 963 630 37 97</a></span></div>
+            <button class="copy" type="button" data-copy="+7 963 630 37 97">Копировать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="inner">
+      <img src="mark.png" alt="CTC">
+      <span>© 2026 Consulting Trading Company</span>
+      <span>info@ctc-world.ru · +7 963 630 37 97</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* всплытие блоков при прокрутке */
+  var io = null;
+  if ('IntersectionObserver' in window && !reduce) {
+    root.classList.add('js');
+    io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) e.target.classList.add('in');
+        else if (e.boundingClientRect.top > 0) e.target.classList.remove('in');
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+  } else {
+    root.classList.add('no-io');
+  }
+  function watch(page) {
+    page.querySelectorAll('.reveal').forEach(function (el) { if (io) { el.classList.remove('in'); io.observe(el); } });
+  }
+
+  /* две страницы */
+  var pages = { home: document.getElementById('page-home'), projects: document.getElementById('page-projects'), invest: document.getElementById('page-invest'), about: document.getElementById('page-about') };
+  var first = true;
+  function show(name) {
+    if (!pages[name]) name = 'home';
+    Object.keys(pages).forEach(function (k) { pages[k].hidden = k !== name; });
+    document.querySelectorAll('.nav-links a').forEach(function (a) { a.classList.toggle('active', a.dataset.link === name); });
+    var page = pages[name];
+    if (!first) {
+      root.classList.add('page-switch');
+      page.querySelectorAll('.rise').forEach(function (el) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+      window.scrollTo(0, 0);
+    }
+    watch(page);
+    first = false;
+  }
+  function scrollToContacts(id) {
+    var el = document.getElementById(id || 'contacts');
+    if (el) setTimeout(function () { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }); }, 60);
+  }
+  function route() {
+    var h = location.hash.replace('#', '');
+    if (h === 'contacts') { show('home'); scrollToContacts(); return; }
+    show(pages[h] ? h : 'home');
+  }
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-link], a[data-scroll]');
+    if (!a) return;
+    e.preventDefault();
+    if (a.dataset.scroll) {
+      var target = document.getElementById(a.dataset.scroll);
+      var host = target && target.closest('.page');
+      if (!host || host.hidden) { show('home'); scrollToContacts('contacts'); return; }
+      scrollToContacts(a.dataset.scroll); return;
+    }
+    if (pages[a.dataset.link].hidden) show(a.dataset.link);
+    else window.scrollTo({ top: 0, behavior: 'smooth' });
+    try { history.replaceState(null, '', '#' + a.dataset.link); } catch (err) {}
+  });
+  window.addEventListener('hashchange', route);
+  route();
+
+  /* фильтр готовых проектов */
+  document.querySelectorAll('.filter').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var f = btn.dataset.filter;
+      document.querySelectorAll('.filter').forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      document.querySelectorAll('.project').forEach(function (card) {
+        var on = f === 'all' || card.dataset.cat === f;
+        card.hidden = !on;
+        if (on) { card.classList.remove('in'); void card.offsetWidth; requestAnimationFrame(function () { card.classList.add('in'); }); }
+      });
+    });
+  });
+
+  /* график окупаемости: накопленный денежный поток */
+  (function () {
+    var box = document.getElementById('payback'), tip = document.getElementById('payback-tip');
+    if (!box) return;
+    var invest = 28, monthly = 1.6, ramp = [0.4, 0.8, 1.2], months = 36;
+    var data = [{ m: 0, v: -invest }];
+    for (var m = 1; m <= months; m++) data.push({ m: m, v: Math.round((data[m - 1].v + (m <= ramp.length ? ramp[m - 1] : monthly)) * 10) / 10 });
+    var payM = 0; for (var i = 1; i < data.length; i++) if (data[i - 1].v < 0 && data[i].v >= 0) { payM = i; break; }
+    var W = 560, H = 300, L = 44, R = 16, T = 16, B = 34;
+    var yMin = -30, yMax = 30;
+    var x = function (m) { return L + (m / months) * (W - L - R); };
+    var y = function (v) { return T + (yMax - v) / (yMax - yMin) * (H - T - B); };
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Накопленный денежный поток: от минус 28 млн ₽ до окупаемости на ' + payM + ' месяце и ' + data[months].v.toFixed(1).replace('.', ',') + ' млн ₽ к 36 месяцу">';
+    svg += '<g class="grid">';
+    [-30, -20, -10, 10, 20, 30].forEach(function (t) { svg += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>'; });
+    svg += '</g><g class="axis">';
+    [-30, -20, -10, 0, 10, 20, 30].forEach(function (t) { svg += '<text x="' + (L - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>'; });
+    [0, 6, 12, 18, 24, 30, 36].forEach(function (t) { svg += '<text x="' + x(t) + '" y="' + (H - 10) + '" text-anchor="middle">' + t + ' мес</text>'; });
+    svg += '</g>';
+    var negPts = [], posPts = [];
+    data.forEach(function (d) { if (d.m <= payM) negPts.push(x(d.m) + ',' + y(Math.min(d.v, 0))); if (d.m >= payM - 1) posPts.push(x(d.m) + ',' + y(Math.max(d.v, 0))); });
+    svg += '<polygon class="area-neg" points="' + x(0) + ',' + y(0) + ' ' + negPts.join(' ') + ' ' + x(payM) + ',' + y(0) + '"/>';
+    svg += '<polygon class="area-pos" points="' + x(payM - 1) + ',' + y(0) + ' ' + posPts.join(' ') + ' ' + x(months) + ',' + y(0) + '"/>';
+    svg += '<line class="zero" x1="' + L + '" x2="' + (W - R) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
+    svg += '<polyline class="line" points="' + data.map(function (d) { return x(d.m) + ',' + y(d.v); }).join(' ') + '"/>';
+    svg += '<circle class="mark" cx="' + x(payM) + '" cy="' + y(data[payM].v) + '" r="5"/>';
+    svg += '<text class="ann" x="' + (x(payM) - 10) + '" y="' + (y(0) - 14) + '" text-anchor="end">Окупаемость · ' + payM + ' мес.</text>';
+    var last = data[months];
+    svg += '<circle class="mark" cx="' + x(months) + '" cy="' + y(last.v) + '" r="5"/>';
+    svg += '<text class="ann" x="' + (x(months) - 10) + '" y="' + (y(last.v) - 12) + '" text-anchor="end">+' + last.v.toFixed(1).replace('.', ',') + ' млн ₽</text>';
+    svg += '<line class="cross" id="pb-cross" x1="0" x2="0" y1="' + T + '" y2="' + (H - B) + '" visibility="hidden"/>';
+    svg += '<circle class="dot" id="pb-dot" r="5" visibility="hidden"/>';
+    svg += '<rect x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '" fill="transparent" id="pb-hit"/>';
+    svg += '</svg>';
+    box.insertAdjacentHTML('beforeend', svg);
+    var el = box.querySelector('svg'), cross = el.querySelector('#pb-cross'), dot = el.querySelector('#pb-dot'), hit = el.querySelector('#pb-hit');
+    function move(ev) {
+      var r = el.getBoundingClientRect(), sx = (ev.clientX - r.left) * W / r.width;
+      var m = Math.max(0, Math.min(months, Math.round((sx - L) / (W - L - R) * months))), d = data[m];
+      cross.setAttribute('x1', x(m)); cross.setAttribute('x2', x(m)); cross.setAttribute('visibility', 'visible');
+      dot.setAttribute('cx', x(m)); dot.setAttribute('cy', y(d.v)); dot.setAttribute('visibility', 'visible');
+      tip.innerHTML = '<small>Месяц ' + m + '</small><b>' + (d.v > 0 ? '+' : '') + d.v.toFixed(1).replace('.', ',') + ' млн ₽</b>';
+      tip.style.left = (x(m) * r.width / W) + 'px'; tip.style.top = (y(d.v) * r.height / H) + 'px'; tip.style.opacity = 1;
+    }
+    function leave() { cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); tip.style.opacity = 0; }
+    hit.addEventListener('pointermove', move); hit.addEventListener('pointerdown', move); hit.addEventListener('pointerleave', leave);
+  })();
+
+  /* блик стекла за курсором */
+  document.addEventListener('pointermove', function (e) {
+    var g = e.target.closest && e.target.closest('.glass');
+    if (!g) return;
+    var r = g.getBoundingClientRect();
+    g.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    g.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+
+  /* копирование контактов */
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.dataset.copy;
+      function ok() { btn.textContent = 'Скопировано'; btn.classList.add('done'); setTimeout(function () { btn.textContent = 'Копировать'; btn.classList.remove('done'); }, 1800); }
+      function fallback() {
+        var val = btn.parentNode.querySelector('.val'), sel = window.getSelection(), rng = document.createRange();
+        rng.selectNodeContents(val); sel.removeAllRanges(); sel.addRange(rng); btn.textContent = 'Выделено';
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, fallback); else fallback();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
